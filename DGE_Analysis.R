@@ -1,6 +1,14 @@
 #Differential Gene Expression Analysis
 
-#Please, open README file before running and install/load required libraries
+#Please, open README file before running and install required libraries
+
+#Load libraries
+library("DESeq2")
+library(RColorBrewer)
+library(gplots)
+library(genefilter)
+library(ggplot2)
+library(EnhancedVolcano)
 
 # Set your working directory
 filepath <- "~choose/your/own/directory"
