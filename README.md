@@ -1,6 +1,6 @@
 # DGE-Analysis
 
-This is a Differential Gene Expression (DGE) Analysis with __DESeq2__ using a reference genome.
+This is a Differential Gene Expression (DGE) Analysis with [__DESeq2__](https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) using a reference genome.
 
 ### __FILE REQUIREMENTS__
 
