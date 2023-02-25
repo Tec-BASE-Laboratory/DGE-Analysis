@@ -1,8 +1,8 @@
-#Differential Gene Expression Analysis
+# Differential Gene Expression Analysis
 
-#Please, open README file before running and install required libraries
+# Please, open README file before running and install required libraries
 
-#Load libraries
+# Load libraries
 library("DESeq2")
 library(RColorBrewer)
 library(gplots)
@@ -15,7 +15,7 @@ filepath <- "~choose/your/own/directory"
 getwd()
 setwd(filepath)
 
-#Create output folder
+# Create output folder
 folder <- "output" 
 if (file.exists(folder)) {
   cat("The folder already exists")
@@ -23,41 +23,41 @@ if (file.exists(folder)) {
   dir.create(folder)
 }
 
-##Paste csv file name of your raw counts
+# Paste csv file name of your raw counts
 countsName <-"your_raw_counts_file.csv"
 
-#Import counts from csv file
+# Import counts from csv file
 countData <- read.csv(countsName, header = TRUE,row.names=1)
 countData <- as.matrix(countData)
 head(countData)
 
-#Build metadata matrix (coldata)
-#Modify it to match your data
+# Build metadata matrix (coldata)
+# Modify it to match your data
 (condition <- factor(c(rep("ctl", 8), rep("exp", 8))))
 (coldata <- data.frame(row.names=colnames(countData), condition))
 
-#Create DESeq2 object
+# Create DESeq2 object
 dds <- DESeqDataSetFromMatrix(countData=countData, colData=coldata, design=~condition)
 dds <- DESeq(dds)
 dds
 
 # Variance Stabilizing Transformations (VST) corrects for size and normalization factors. 
-#The transformed data is on the log2 scale for large counts.
+# The transformed data is on the log2 scale for large counts.
 vsd <- vst(dds, blind=FALSE) #takes ~1 second to run but gives a different result
 head(assay(vsd))
-rld <- rlogTransformation(dds)  #takes ~30 s #alternative form: rlog(dds, blind=FALSE)
+rld <- rlogTransformation(dds)  # takes ~30 s #alternative form: rlog(dds, blind=FALSE)
 head(assay(rld))
-#Visualization of rlog transformation
+# Visualization of rlog transformation
 hist(assay(rld))
-#Save normalization results 
+# Save normalization results 
 write.csv(results(dds), file="output/DGE-results.csv")
 
-#Calculate distances between samples
+# Calculate distances between samples
 (mycols <- brewer.pal(8, "BuPu")[1:length(unique(condition))])
 sampleDists <- as.matrix(dist(t(assay(rld))))
 head(sampleDists)
 
-#Create a heatmap image from Sample Distance Matrix
+# Create a heatmap image from Sample Distance Matrix
 png("output/DGE-heatmap.png", w=1000, h=1000, pointsize=20)
 heatmap.2(as.matrix(sampleDists), key=F, trace="none",
           col=colorpanel(100, "cyan", "white"),
@@ -66,7 +66,7 @@ heatmap.2(as.matrix(sampleDists), key=F, trace="none",
 dev.off()
 
 
-#Create a PCA plot function
+# Create a PCA plot function
 rld_pca <- function (rld, intgroup = "condition", ntop = 500, colors=NULL, legendpos="bottomleft", main="PCA Biplot", textcx=1, ...) {
   require(genefilter)
   require(calibrate)
@@ -90,40 +90,40 @@ rld_pca <- function (rld, intgroup = "condition", ntop = 500, colors=NULL, legen
   with(as.data.frame(pca$x), textxy(PC1, PC2, labs=rownames(as.data.frame(pca$x)), cex=textcx))
   legend(legendpos, legend=levels(fac), col=colors, pch=20)
 }
-#Run and save PCA plot
+# Run and save PCA plot
 png("output/DGE-pca.png", 1000, 1000, pointsize=20)
 rld_pca(rld, intgroup="condition",xlim=c(-75, 35))
 dev.off()
 
-#RESULTS
+# RESULTS
 res <- results(dds,
                contrast = c("condition", "exp", "ctl"),
                alpha = 0.1,
                lfcThreshold = 0.32) #Adjust for multiple testing =1.25 foldchange
 summary(res)
-#Visualize MA plot to observe significant DE genes
+# Visualize MA plot to observe significant DE genes
 plotMA(res,ylim=c(-8,8))
 
-#Shrink results
+# Shrink results
 res <- lfcShrink(dds, contrast = c("condition", "exp", "ctl"), res = res, type="normal")
 summary(res)
-#Visualize MA plot to observe shrinkage
+# Visualize MA plot to observe shrinkage
 plotMA(res,ylim=c(-8,8))
 head(res)
 
-#Create Data Frame with significant DGE (alpha=0.05)
+# Create Data Frame with significant DGE (alpha=0.05)
 table(res$padj<0.05)
 resdata <- res[order(res$padj), ]
 resdata <- merge(as.data.frame(res), as.data.frame(counts(dds, normalized=TRUE)), by="row.names", sort=FALSE)
 names(resdata)[1] <- "Gene"
 head(resdata)
-#Save shrunk results to csv file
+# Save shrunk results to csv file
 write.csv(resdata, file="output/DGE-shrunkresults.csv")
-#Quick visualization of significant findings
+# Quick visualization of significant findings
 hist(resdata$pvalue, breaks=50, col="blue")
 
-#VOLCANO PLOT
-#Using Enhanced Volcano plot package
+# VOLCANO PLOT
+# Using Enhanced Volcano plot package
 png("output/DGE-volcanoplot.png", 1200, 1000, pointsize=20)
 EnhancedVolcano(res,
                 lab = rownames(res),
@@ -148,14 +148,14 @@ EnhancedVolcano(res,
                 legendIconSize = 8)
 dev.off()
 
-#Dispersion plot
+# Dispersion plot
 png("output/DGE-dispersions.png", 1000, 1000, pointsize=20)
 plotDispEsts(dds, main="Dispersion plot")
 dev.off()
 
 
-#Now you have 4 images in your folder with:
-#a heatmap, PCA, volcano plot and dispersions plot
-#And some csv files with your results
+# Now you have 4 images in your folder with:
+# a heatmap, PCA, volcano plot and dispersions plot
+# And some csv files with your results
 
-#good luck
+# good luck
